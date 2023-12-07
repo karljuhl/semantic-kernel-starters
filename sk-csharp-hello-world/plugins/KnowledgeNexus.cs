@@ -46,7 +46,20 @@ execution_settings:
     temperature: 0.3
 
 
+
+
+
+        
 // CQA_KN.cs
+// Asynchoronous fetching of related answers from a CQA resource using azure sdk for .net
+        
+using Azure.Core;
+using Azure.AI.Language.QuestionAnswering;
+
+Uri endpoint = new Uri("https://myaccount.cognitiveservices.azure.com/");
+AzureKeyCredential credential = new AzureKeyCredential("{api-key}");
+
+QuestionAnsweringClient client = new QuestionAnsweringClient(endpoint, credential);
 
 string projectName = "{ProjectName}";
 string deploymentName = "{DeploymentName}";
@@ -63,6 +76,82 @@ foreach (KnowledgeBaseAnswer answer in response.Value.Answers)
 
 
 
+
+
+
 // CLU_KN.cs
+// Asynchoronous fetching of related CLU entities and intents from the azure sdk for .net
+
+using Azure.Core;
+using Azure.Core.Serialization;
+using Azure.AI.Language.Conversations;
+
+Uri endpoint = new Uri("https://myaccount.cognitiveservices.azure.com");
+AzureKeyCredential credential = new AzureKeyCredential("{api-key}");
+
+ConversationAnalysisClient client = new ConversationAnalysisClient(endpoint, credential);
+
+string projectName = "Menu";
+string deploymentName = "production";
+
+var data = new
+{
+    AnalysisInput = new
+    {
+        ConversationItem = new
+        {
+            Text = "Send an email to Carol about tomorrow's demo",
+            Id = "1",
+            ParticipantId = "1",
+        }
+    },
+    Parameters = new
+    {
+        ProjectName = projectName,
+        DeploymentName = deploymentName,
+
+        // Use Utf16CodeUnit for strings in .NET.
+        StringIndexType = "Utf16CodeUnit",
+    },
+    Kind = "Conversation",
+};
 
 Response response = await client.AnalyzeConversationAsync(RequestContent.Create(data, JsonPropertyNames.CamelCase));
+
+dynamic conversationalTaskResult = response.Content.ToDynamicFromJson(JsonPropertyNames.CamelCase);
+dynamic conversationPrediction = conversationalTaskResult.Result.Prediction;
+
+Console.WriteLine($"Top intent: {conversationPrediction.TopIntent}");
+
+Console.WriteLine("Intents:");
+foreach (dynamic intent in conversationPrediction.Intents)
+{
+    Console.WriteLine($"Category: {intent.Category}");
+    Console.WriteLine($"Confidence: {intent.ConfidenceScore}");
+    Console.WriteLine();
+}
+
+Console.WriteLine("Entities:");
+foreach (dynamic entity in conversationPrediction.Entities)
+{
+    Console.WriteLine($"Category: {entity.Category}");
+    Console.WriteLine($"Text: {entity.Text}");
+    Console.WriteLine($"Offset: {entity.Offset}");
+    Console.WriteLine($"Length: {entity.Length}");
+    Console.WriteLine($"Confidence: {entity.ConfidenceScore}");
+    Console.WriteLine();
+
+    if (entity.Resolutions is not null)
+    {
+        foreach (dynamic resolution in entity.Resolutions)
+        {
+            if (resolution.ResolutionKind == "DateTimeResolution")
+            {
+                Console.WriteLine($"Datetime Sub Kind: {resolution.DateTimeSubKind}");
+                Console.WriteLine($"Timex: {resolution.Timex}");
+                Console.WriteLine($"Value: {resolution.Value}");
+                Console.WriteLine();
+            }
+        }
+    }
+}

@@ -2,11 +2,19 @@ using Azure.Core;
 using Azure.AI.Language.QuestionAnswering;
 using Azure.AI.Language.Conversations;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System;
 
-public class KnowledgeNexusPlugin
+namespace Plugins;
+
+/// <summary>
+/// A Semantic Kernel plugin that pulls CQA, CLU response context 
+/// and returns them to be used by the RAG assistant prompt .yaml
+/// </summary>
+
+internal class KnowledgeNexusPlugin
 {
     private readonly AzureKeyCredential credential;
     private readonly Uri cqaEndpoint;

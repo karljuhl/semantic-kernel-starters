@@ -401,3 +401,6 @@ FodyWeavers.xsd
 .semantic-kernel
 appsettings.json
 .DS_Store
+sk-csharp-hello-world/plugins/testing clu copy.cs
+sk-csharp-hello-world/plugins/testing clu.cs
+sk-csharp-hello-world/plugins/testing cqa.cs
